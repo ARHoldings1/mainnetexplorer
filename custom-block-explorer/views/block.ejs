@@ -1,0 +1,8 @@
+<h1>Block Details</h1>
+<table>
+    <tr><th>Number</th><td><%= block.number %></td></tr>
+    <tr><th>Hash</th><td><%= block.hash %></td></tr>
+    <tr><th>Timestamp</th><td><%= new Date(block.timestamp * 1000).toLocaleString() %></td></tr>
+    <tr><th>Transactions</th><td><%= block.transactions.length %></td></tr>
+    <!-- Add more block details as needed -->
+</table>

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<%- include('partials/header', {title: 'All Blocks'}) %>
+<body>
+    <%- include('partials/navigation') %>
+
+    <main class="container">
+        <h1>All Blocks</h1>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Block</th>
+                        <th>Age</th>
+                        <th>Txn</th>
+                        <th>Gas Used</th>
+                        <th>Gas Limit</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% blocks.forEach(block => { %>
+                        <tr>
+                            <td><a href="/block/<%= block.number %>"><%= block.number %></a></td>
+                            <td><%= getTimeDifference(block.timestamp) %></td>
+                            <td><%= block.transactions.length %></td>
+                            <td><%= block.gasUsed %></td>
+                            <td>30000000</td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <%- include('partials/footer') %>
+
+    <script src="/script.js"></script>
+</body>
+</html>

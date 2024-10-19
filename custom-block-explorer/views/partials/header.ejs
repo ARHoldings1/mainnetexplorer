@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= typeof title !== 'undefined' ? title + ' - Dot Protocol Explorer' : 'Dot Protocol Explorer' %></title>
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/dark-mode.css">
+    <link rel="icon" type="image/x-icon" href="/assets/favicon.ico">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo-container">
+                    <img src="/assets/logo.png" alt="Dot Protocol Logo" class="logo">
+                    <h1>Dot Protocol Explorer</h1>
+                </div>
+                <div class="header-actions">
+                    <div class="search-container">
+                        <form action="/search" method="GET" class="search-form">
+                            <input type="text" name="q" placeholder="Search by Address / Txn Hash / Block" class="search-input">
+                            <button type="submit" class="search-button"><i class="fas fa-search"></i></button>
+                        </form>
+                    </div>
+                    <button id="darkModeToggle" class="btn-icon"><i class="fas fa-moon"></i></button>
+                </div>
+            </div>
+        </div>
+    </header>

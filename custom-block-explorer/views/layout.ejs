@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> - Dot Protocol Explorer</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/dark-mode.css">
+    <link rel="icon" type="image/x-icon" href="/assets/favicon.ico">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        // Check for saved dark mode preference and apply it immediately
+        if (localStorage.getItem('darkMode') === 'true') {
+            document.body.classList.add('dark-mode');
+        }
+    </script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo-container">
+                    <img src="/assets/logo.png" alt="Dot Protocol Logo" class="logo">
+                    <h1>The Dot Protocol Explorer</h1>
+                </div>
+                <div class="header-actions">
+                    <div class="search-container">
+                        <form action="/search" method="GET">
+                            <input type="text" name="q" placeholder="<%= t('search.placeholder') %>">
+                            <button type="submit"><i class="fas fa-search"></i> <%= t('search.button') %></button>
+                        </form>
+                    </div>
+                    <select id="languageSelector" class="btn-select">
+                        <option value="en">English</option>
+                        <option value="es">Español</option>
+                        <option value="fr">Français</option>
+                    </select>
+                    <button id="darkModeToggle" class="btn-icon"><i class="fas fa-moon"></i></button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <nav>
+        <div class="container">
+            <ul class="main-menu">
+                <li><a href="/"><%= t('menu.home') %></a></li>
+                <li><a href="/blockchain"><%= t('menu.blockchain') %></a></li>
+                <li><a href="/validators"><%= t('menu.validators') %></a></li>
+                <li><a href="/tokens"><%= t('menu.tokens') %></a></li>
+                <li><a href="/nfts"><%= t('menu.nfts') %></a></li>
+                <li><a href="/resources"><%= t('menu.resources') %></a></li>
+                <li><a href="/developers"><%= t('menu.developers') %></a></li>
+                <li><a href="/login"><%= t('menu.signIn') %></a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container">
+        <%- body %>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>Powered by The Dot Protocol</p>
+            <p>3Dot Scan is a Block Explorer and Analytics Platform for Dot Protocol Chain.</p>
+            
+            <div class="network-buttons">
+                <button id="addMainnet" class="btn">Add Dot Protocol main net</button>
+                <button id="addTestnet" class="btn">Add Chennai Testnet</button>
+            </div>
+
+            <div class="footer-links">
+                <div>
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="#">Delegate to 3DOTscan Staking</a></li>
+                        <li><a href="#">Brand Assets</a></li>
+                        <li><a href="#">Contact Us</a></li>
+                        <li><a href="#">Terms & Privacy</a></li>
+                        <li><a href="#">Bug Bounty</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>Community</h4>
+                    <ul>
+                        <li><a href="#">API Documentation</a></li>
+                        <li><a href="#">Knowledge Base</a></li>
+                        <li><a href="#">Network Status</a></li>
+                        <li><a href="#">Learn DPC20</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>Products & Services</h4>
+                    <ul>
+                        <li><a href="#">Advertise</a></li>
+                        <li><a href="#">Explorer as a Service (EaaS)</a></li>
+                        <li><a href="#">API Plans</a></li>
+                        <li><a href="#">Priority Support</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>3DOTScan © 2024 (Dot Protocol) | All Rights Reserved</p>
+            <p>Donations <i class="fas fa-gem"></i></p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.5.2/dist/web3.min.js"></script>
+    <script>
+        // Dark mode toggle
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        const body = document.body;
+
+        function toggleDarkMode() {
+            body.classList.toggle('dark-mode');
+            const isDarkMode = body.classList.contains('dark-mode');
+            darkModeToggle.innerHTML = isDarkMode ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+            localStorage.setItem('darkMode', isDarkMode);
+        }
+
+        darkModeToggle.addEventListener('click', toggleDarkMode);
+
+        // Set initial icon based on current mode
+        darkModeToggle.innerHTML = body.classList.contains('dark-mode') ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+
+        // Language selector
+        const languageSelector = document.getElementById('languageSelector');
+        languageSelector.addEventListener('change', (e) => {
+            // Implement language change logic here
+            console.log('Language changed to:', e.target.value);
+        });
+
+        // Network adding functionality
+        const addMainnet = document.getElementById('addMainnet');
+        const addTestnet = document.getElementById('addTestnet');
+
+        async function addNetwork(networkDetails) {
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    await window.ethereum.request({
+                        method: 'wallet_addEthereumChain',
+                        params: [networkDetails],
+                    });
+                    console.log('Network added successfully');
+                } catch (error) {
+                    console.error('Failed to add network:', error);
+                }
+            } else {
+                console.error('MetaMask is not installed');
+            }
+        }
+
+        addMainnet.addEventListener('click', () => {
+            const mainnetDetails = {
+                chainId: '0x60A', // 1546 in hexadecimal
+                chainName: 'Dot Protocol Mainnet',
+                nativeCurrency: {
+                    name: 'DOT',
+                    symbol: 'DOT',
+                    decimals: 18
+                },
+                rpcUrls: ['https://mainnet.dotprotocol.network'],
+                blockExplorerUrls: ['https://explorer.dotprotocol.network']
+            };
+            addNetwork(mainnetDetails);
+        });
+
+        addTestnet.addEventListener('click', () => {
+            const testnetDetails = {
+                chainId: '0x60B', // 1547 in hexadecimal (assuming testnet is 1547)
+                chainName: 'Dot Protocol Chennai Testnet',
+                nativeCurrency: {
+                    name: 'DOT',
+                    symbol: 'DOT',
+                    decimals: 18
+                },
+                rpcUrls: ['https://testnet.dotprotocol.network'],
+                blockExplorerUrls: ['https://testnet-explorer.dotprotocol.network']
+            };
+            addNetwork(testnetDetails);
+        });
+    </script>
+</body>
+</html>

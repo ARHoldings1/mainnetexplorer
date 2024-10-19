@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<%- include('partials/header') %>
+<body>
+    <%- include('partials/navigation') %>
+
+    <main class="container">
+        <div class="content-wrapper">
+            <div class="left-column">
+                <section class="overview">
+                    <div class="stat-box">
+                        <h3>$3DOT PRICE</h3>
+                        <p>$1.00 @ 1.000000 $3DOT <span class="change">(0.00%)</span></p>
+                    </div>
+                    <div class="stat-box">
+                        <h3>TRANSACTIONS</h3>
+                        <p><%= totalTransactions %> (<%= tps %> TPS)</p>
+                    </div>
+                    <div class="stat-box">
+                        <h3>LAST FINALIZED BLOCK</h3>
+                        <p><%= latestBlock.number %></p>
+                    </div>
+                    <div class="stat-box">
+                        <h3>AVERAGE BLOCK TIME</h3>
+                        <p><%= averageBlockTime %> s</p>
+                    </div>
+                    <div class="stat-box">
+                        <h3>GAS PRICE</h3>
+                        <p>0.01 GWei</p>
+                    </div>
+                    <div class="stat-box">
+                        <h3>GAS LIMIT</h3>
+                        <p>30000000</p>
+                    </div>
+                </section>
+            </div>
+            <div class="right-column">
+                <section class="latest-blocks">
+                    <h2>Latest Blocks</h2>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Block</th>
+                                    <th>Age</th>
+                                    <th>Txn</th>
+                                    <th>Gas Used</th>
+                                    <th>Gas Limit</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% latestBlocks.forEach(block => { %>
+                                    <tr>
+                                        <td><a href="/block/<%= block.number %>"><%= block.number %></a></td>
+                                        <td><%= getTimeDifference(block.timestamp) %></td>
+                                        <td><%= block.transactions.length %></td>
+                                        <td><%= block.gasUsed %></td>
+                                        <td>30000000</td>
+                                    </tr>
+                                <% }); %>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="view-all-button">
+                        <a href="/blocks" class="btn">View all Blocks</a>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <section class="latest-transactions">
+            <h2>Latest Transactions</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Txn Hash</th>
+                            <th>Method</th>
+                            <th>Block</th>
+                            <th>Age</th>
+                            <th>From</th>
+                            <th>To</th>
+                            <th>Value</th>
+                            <th>Txn Fee</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% latestTransactions.forEach(tx => { %>
+                            <tr>
+                                <td><a href="/tx/<%= tx.hash %>"><%= tx.hash.substring(0, 16) %>...</a></td>
+                                <td>Transfer</td>
+                                <td><a href="/block/<%= tx.blockNumber %>"><%= tx.blockNumber %></a></td>
+                                <td><%= getTimeDifference(tx.timestamp) %></td>
+                                <td><a href="/address/<%= tx.from %>"><%= tx.from.substring(0, 16) %>...</a></td>
+                                <td><a href="/address/<%= tx.to %>"><%= tx.to.substring(0, 16) %>...</a></td>
+                                <td><%= web3.utils.fromWei(tx.value.toString(), 'ether') %> 3DOT</td>
+                                <td><%= calculateTxnFee(tx) %> 3DOT</td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            </div>
+            <div class="view-all-button">
+                <a href="/transactions" class="btn">View all Transactions</a>
+            </div>
+        </section>
+    </main>
+
+    <%- include('partials/footer') %>
+
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.5.2/dist/web3.min.js"></script>
+    <script src="/script.js"></script>
+</body>
+</html>

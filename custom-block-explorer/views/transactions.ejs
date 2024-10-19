@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<%- include('partials/header', {title: 'All Transactions'}) %>
+<body>
+    <%- include('partials/navigation') %>
+
+    <main class="container">
+        <h1>All Transactions</h1>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Txn Hash</th>
+                        <th>Method</th>
+                        <th>Block</th>
+                        <th>Age</th>
+                        <th>From</th>
+                        <th>To</th>
+                        <th>Value</th>
+                        <th>Txn Fee</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% transactions.forEach(tx => { %>
+                        <tr>
+                            <td><a href="/tx/<%= tx.hash %>"><%= tx.hash.substring(0, 16) %>...</a></td>
+                            <td>Transfer</td>
+                            <td><a href="/block/<%= tx.blockNumber %>"><%= tx.blockNumber %></a></td>
+                            <td><%= getTimeDifference(tx.timestamp) %></td>
+                            <td><a href="/address/<%= tx.from %>"><%= tx.from.substring(0, 16) %>...</a></td>
+                            <td><a href="/address/<%= tx.to %>"><%= tx.to.substring(0, 16) %>...</a></td>
+                            <td><%= web3.utils.fromWei(tx.value.toString(), 'ether') %> 3DOT</td>
+                            <td><%= calculateTxnFee(tx) %> 3DOT</td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <%- include('partials/footer') %>
+
+    <script src="/script.js"></script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<%- include('partials/header', {title: 'My Profile'}) %>
+<body>
+    <%- include('partials/navigation') %>
+
+    <main class="container">
+        <div class="profile-container">
+            <h2>Welcome, <%= username %>!</h2>
+            
+            <section class="account-overview">
+                <h3>Account Overview</h3>
+                <!-- Add account information here -->
+            </section>
+
+            <section class="account-actions">
+                <h3>Account Actions</h3>
+                <ul>
+                    <li><a href="/settings">Account Settings</a></li>
+                    <li><a href="/logout">Logout</a></li>
+                </ul>
+            </section>
+        </div>
+    </main>
+
+    <%- include('partials/footer') %>
+
+    <script src="/script.js"></script>
+</body>
+</html>

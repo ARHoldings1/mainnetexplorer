@@ -1,0 +1,45 @@
+<%- include('partials/header', {title: 'Search Results'}) %>
+
+<main class="container">
+    <section class="search-results">
+        <h1>Search Results</h1>
+
+        <% if (error) { %>
+            <p class="error"><%= error %></p>
+        <% } else if (results) { %>
+            <div class="result-box">
+                <% if (results.type === 'address') { %>
+                    <h2>Address Details</h2>
+                    <table class="info-table">
+                        <tr>
+                            <th>Address:</th>
+                            <td><%= results.data.address %></td>
+                        </tr>
+                        <tr>
+                            <th>Balance:</th>
+                            <td><%= results.data.balance %> 3DOT</td>
+                        </tr>
+                        <tr>
+                            <th>Balance (Wei):</th>
+                            <td><%= results.data.balanceWei %></td>
+                        </tr>
+                        <tr>
+                            <th>Is Contract:</th>
+                            <td><%= results.data.isContract ? 'Yes' : 'No' %></td>
+                        </tr>
+                    </table>
+                <% } else if (results.type === 'transaction') { %>
+                    <!-- Transaction details here -->
+                <% } else if (results.type === 'block') { %>
+                    <!-- Block details here -->
+                <% } else { %>
+                    <p>No results found for the given query.</p>
+                <% } %>
+            </div>
+        <% } else { %>
+            <p>No results found for your search query.</p>
+        <% } %>
+    </section>
+</main>
+
+<%- include('partials/footer') %>

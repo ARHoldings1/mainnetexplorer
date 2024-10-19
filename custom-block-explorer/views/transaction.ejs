@@ -1,0 +1,8 @@
+<h1>Transaction Details</h1>
+<table>
+    <tr><th>Hash</th><td><%= tx.hash %></td></tr>
+    <tr><th>From</th><td><%= tx.from %></td></tr>
+    <tr><th>To</th><td><%= tx.to %></td></tr>
+    <tr><th>Value</th><td><%= web3.utils.fromWei(tx.value, 'ether') %> ETH</td></tr>
+    <!-- Add more transaction details as needed -->
+</table>
