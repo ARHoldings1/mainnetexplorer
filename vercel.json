@@ -1,5 +1,12 @@
 {
   "version": 2,
+  "projectSettings": {
+    "framework": "node",
+    "buildCommand": null,
+    "devCommand": null,
+    "outputDirectory": null,
+    "installCommand": "npm install"
+  },
   "builds": [
     {
       "src": "app.js",
