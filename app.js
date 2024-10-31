@@ -12,45 +12,31 @@ const app = express();
 // Updated MongoDB connection without deprecated options
 mongoose.connect(process.env.MONGODB_URI, {
   serverSelectionTimeoutMS: 5000,
-  socketTimeoutMS: 30000,
+  socketTimeoutMS: 15000,
   connectTimeoutMS: 10000,
-  maxPoolSize: 10,
-  minPoolSize: 5,
-  maxIdleTimeMS: 30000,
-  waitQueueTimeoutMS: 10000,
+  maxPoolSize: 5,
+  minPoolSize: 1,
+  maxIdleTimeMS: 10000,
+  waitQueueTimeoutMS: 5000,
 })
 .then(() => {
   console.log('Connected to MongoDB');
-  // Initialize connection pool
-  mongoose.connection.db.admin().ping();
 })
 .catch(err => {
   console.error('MongoDB connection error:', err);
 });
 
-// Optimize the keep-alive interval for serverless
-let keepAliveInterval;
-const startKeepAlive = () => {
-  if (keepAliveInterval) clearInterval(keepAliveInterval);
-  keepAliveInterval = setInterval(async () => {
-    if (mongoose.connection.readyState === 1) {
-      try {
-        await mongoose.connection.db.admin().ping();
-        console.log('MongoDB keep-alive ping successful');
-      } catch (error) {
-        console.error('MongoDB keep-alive ping failed:', error);
-      }
+// Remove the keep-alive ping as it's not effective in serverless
+// Instead, implement connection handling per request
+app.use(async (req, res, next) => {
+  if (mongoose.connection.readyState !== 1) {
+    try {
+      await mongoose.connect(process.env.MONGODB_URI);
+    } catch (error) {
+      console.error('Request connection error:', error);
     }
-  }, 20000); // Reduced to 20 seconds for Vercel's limitations
-};
-
-startKeepAlive();
-
-// Handle connection events
-mongoose.connection.on('connected', startKeepAlive);
-mongoose.connection.on('disconnected', () => {
-  console.log('MongoDB disconnected. Attempting to reconnect...');
-  if (keepAliveInterval) clearInterval(keepAliveInterval);
+  }
+  next();
 });
 
 // Set up EJS as the view engine
