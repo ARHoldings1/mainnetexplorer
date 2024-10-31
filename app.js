@@ -9,27 +9,49 @@ dotenv.config();
 
 const app = express();
 
-// MongoDB connection with timeout and better error handling
+// Updated MongoDB connection without deprecated options
 mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  serverSelectionTimeoutMS: 5000, // 5 second timeout
-  socketTimeoutMS: 45000, // 45 second timeout
-  connectTimeoutMS: 10000, // 10 second timeout
+  serverSelectionTimeoutMS: 5000,
+  socketTimeoutMS: 30000,
+  connectTimeoutMS: 10000,
+  maxPoolSize: 10,
+  minPoolSize: 5,
+  maxIdleTimeMS: 30000,
+  waitQueueTimeoutMS: 10000,
 })
-.then(() => console.log('Connected to MongoDB'))
+.then(() => {
+  console.log('Connected to MongoDB');
+  // Initialize connection pool
+  mongoose.connection.db.admin().ping();
+})
 .catch(err => {
   console.error('MongoDB connection error:', err);
-  // Don't crash the server on connection error
-  // Instead, we'll handle errors in the routes
 });
 
-// Keep alive signal for MongoDB
-setInterval(() => {
-  if (mongoose.connection.readyState === 1) {
-    mongoose.connection.db.admin().ping();
-  }
-}, 30000);
+// Optimize the keep-alive interval for serverless
+let keepAliveInterval;
+const startKeepAlive = () => {
+  if (keepAliveInterval) clearInterval(keepAliveInterval);
+  keepAliveInterval = setInterval(async () => {
+    if (mongoose.connection.readyState === 1) {
+      try {
+        await mongoose.connection.db.admin().ping();
+        console.log('MongoDB keep-alive ping successful');
+      } catch (error) {
+        console.error('MongoDB keep-alive ping failed:', error);
+      }
+    }
+  }, 20000); // Reduced to 20 seconds for Vercel's limitations
+};
+
+startKeepAlive();
+
+// Handle connection events
+mongoose.connection.on('connected', startKeepAlive);
+mongoose.connection.on('disconnected', () => {
+  console.log('MongoDB disconnected. Attempting to reconnect...');
+  if (keepAliveInterval) clearInterval(keepAliveInterval);
+});
 
 // Set up EJS as the view engine
 app.set('view engine', 'ejs');
@@ -70,35 +92,56 @@ app.use('/transactions', transactionRoutes);
 app.use('/tokens', tokenRoutes);
 app.use('/auth', authRoutes);
 
-// Enhanced error handling middleware
+// Enhanced error handling middleware with more specific cases
 app.use((err, req, res, next) => {
   console.error('Error:', err);
   
-  // Handle specific types of errors
   if (err.name === 'MongooseError' || err.name === 'MongoError') {
+    console.error('Database Error Details:', err);
     return res.status(503).render('error', { 
       title: 'Database Error', 
       error: 'Database connection issue. Please try again in a few moments.' 
     });
   }
   
-  if (err.code === 'ETIMEDOUT') {
+  if (err.code === 'ETIMEDOUT' || err.name === 'TimeoutError') {
+    console.error('Timeout Error Details:', err);
     return res.status(504).render('error', { 
       title: 'Timeout Error', 
       error: 'Request timed out. Please try again.' 
     });
   }
 
-  // Default error response
+  if (err.name === 'ValidationError') {
+    return res.status(400).render('error', { 
+      title: 'Validation Error', 
+      error: 'Invalid data provided.' 
+    });
+  }
+
+  console.error('Unhandled Error:', err);
   res.status(500).render('error', { 
     title: 'Error', 
     error: process.env.NODE_ENV === 'production' ? 'Something went wrong!' : err.message 
   });
 });
 
-// Add a keep-alive endpoint
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'ok' });
+// Health check endpoint with detailed status
+app.get('/health', async (req, res) => {
+  try {
+    await mongoose.connection.db.admin().ping();
+    res.status(200).json({ 
+      status: 'ok',
+      mongodb: 'connected',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(503).json({ 
+      status: 'error',
+      mongodb: 'disconnected',
+      timestamp: new Date().toISOString()
+    });
+  }
 });
 
 const PORT = process.env.PORT || 3001;
