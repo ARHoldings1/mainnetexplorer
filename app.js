@@ -9,33 +9,52 @@ dotenv.config();
 
 const app = express();
 
-// Updated MongoDB connection without deprecated options
-mongoose.connect(process.env.MONGODB_URI, {
-  serverSelectionTimeoutMS: 5000,
-  socketTimeoutMS: 15000,
-  connectTimeoutMS: 10000,
-  maxPoolSize: 5,
-  minPoolSize: 1,
-  maxIdleTimeMS: 10000,
-  waitQueueTimeoutMS: 5000,
-})
-.then(() => {
-  console.log('Connected to MongoDB');
-})
-.catch(err => {
-  console.error('MongoDB connection error:', err);
+// Replace the initial mongoose.connect with this utility function
+let cachedConnection = null;
+
+const connectToDatabase = async () => {
+  if (cachedConnection && mongoose.connection.readyState === 1) {
+    return cachedConnection;
+  }
+
+  try {
+    const connection = await mongoose.connect(process.env.MONGODB_URI, {
+      serverSelectionTimeoutMS: 3000, // Reduced timeout for serverless
+      socketTimeoutMS: 10000,
+      connectTimeoutMS: 5000,
+      maxPoolSize: 1, // Reduced pool size for serverless
+      minPoolSize: 0,
+      maxIdleTimeMS: 5000,
+      waitQueueTimeoutMS: 3000,
+    });
+    
+    cachedConnection = connection;
+    return connection;
+  } catch (error) {
+    console.error('MongoDB connection error:', error);
+    throw error;
+  }
+};
+
+// Replace the middleware with this
+app.use(async (req, res, next) => {
+  try {
+    await connectToDatabase();
+    next();
+  } catch (error) {
+    console.error('Request connection error:', error);
+    next(error);
+  }
 });
 
-// Remove the keep-alive ping as it's not effective in serverless
-// Instead, implement connection handling per request
-app.use(async (req, res, next) => {
-  if (mongoose.connection.readyState !== 1) {
-    try {
-      await mongoose.connect(process.env.MONGODB_URI);
-    } catch (error) {
-      console.error('Request connection error:', error);
-    }
-  }
+// Add this near the top of your middleware stack
+app.use((req, res, next) => {
+  // Set timeout to 10 seconds
+  req.setTimeout(10000, () => {
+    const err = new Error('Request Timeout');
+    err.status = 408;
+    next(err);
+  });
   next();
 });
 
@@ -55,8 +74,17 @@ app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
-  store: MongoStore.create({ mongoUrl: process.env.MONGODB_URI }),
-  cookie: { secure: process.env.NODE_ENV === 'production' }
+  store: MongoStore.create({ 
+    mongoUrl: process.env.MONGODB_URI,
+    touchAfter: 24 * 3600, // Only update sessions once per day
+    ttl: 14 * 24 * 60 * 60, // 14 days
+    autoRemove: 'native',
+    stringify: false
+  }),
+  cookie: { 
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 14 * 24 * 60 * 60 * 1000 // 14 days
+  }
 }));
 
 // Middleware to make user data available in all views

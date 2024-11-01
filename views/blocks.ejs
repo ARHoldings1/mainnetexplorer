@@ -1,0 +1,23 @@
+<%- include('layout', { title: 'All Blocks', content: `
+    <h1>All Blocks</h1>
+    <table id="blocks-table">
+        <thead>
+            <tr>
+                <th>Block</th>
+                <th>Age</th>
+                <th>Transactions</th>
+                <th>Validator</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${blocks.map(block => `
+                <tr>
+                    <td><a href="/block/${block.number}">${block.number}</a></td>
+                    <td>${new Date(Number(block.timestamp) * 1000).toLocaleString()}</td>
+                    <td>${block.transactions.length}</td>
+                    <td><a href="/address/${block.miner}">${block.miner}</a></td>
+                </tr>
+            `).join('')}
+        </tbody>
+    </table>
+` }) %>

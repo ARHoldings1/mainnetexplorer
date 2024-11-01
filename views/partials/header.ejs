@@ -1,0 +1,28 @@
+<header>
+    <div class="header-content">
+        <div class="logo-container">
+            <img src="/images/logo.png" alt="Dot Protocol Logo" class="logo">
+            <h1>Dot Protocol Scan</h1>
+        </div>
+        <div class="search-container">
+            <form action="/search" method="GET" class="search-form">
+                <input type="text" name="q" placeholder="Search by Address / Txn Hash / Block / Token" class="search-input">
+                <button type="submit" class="search-button">Search</button>
+            </form>
+        </div>
+        <nav>
+            <ul class="main-menu">
+                <li><a href="/">Home</a></li>
+                <li><a href="/validators">Validators</a></li>
+                <li><a href="/transactions">Transactions</a></li>
+                <li><a href="/tokens">Tokens</a></li>
+                <% if (locals.user) { %>
+                    <li><a href="/auth/profile"><%= user.username %></a></li>
+                    <li><a href="/auth/logout">Logout</a></li>
+                <% } else { %>
+                    <li><a href="/auth/signin">Sign In</a></li>
+                <% } %>
+            </ul>
+        </nav>
+    </div>
+</header>

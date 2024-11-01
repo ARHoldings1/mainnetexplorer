@@ -1,0 +1,105 @@
+<%- include('layout', { title: `Address ${address}`, content: `
+    <h1>${isContract ? 'Contract' : 'Address'} ${address}</h1>
+    <div class="address-overview">
+        <table class="info-table">
+            <tr><th>Address:</th><td>${address}</td></tr>
+            <tr><th>Balance:</th><td>${web3.utils.fromWei(balance, 'ether')} 3DOT</td></tr>
+            <tr><th>3DOT Value:</th><td>$${formatLargeNumber(web3.utils.fromWei(balance, 'ether'))} USD</td></tr>
+            <tr><th>Contract:</th><td>${isContract ? 'Yes' : 'No'}</td></tr>
+            ${isContract && contractInfo ? `
+                <tr><th>Token Name:</th><td>${contractInfo.name}</td></tr>
+                <tr><th>Symbol:</th><td>${contractInfo.symbol}</td></tr>
+                <tr><th>Total Supply:</th><td>${contractInfo.totalSupply} ${contractInfo.symbol}</td></tr>
+                <tr><th>Decimals:</th><td>${contractInfo.decimals}</td></tr>
+            ` : ''}
+        </table>
+    </div>
+
+    ${isContract ? `
+        <h2>Contract Overview</h2>
+        <div class="contract-tabs">
+            <button class="tab-button active" onclick="openTab(event, 'token-transfers')">Token Transfers</button>
+            <button class="tab-button" onclick="openTab(event, 'contract-source')">Contract Source</button>
+            <button class="tab-button" onclick="openTab(event, 'read-contract')">Read Contract</button>
+            <button class="tab-button" onclick="openTab(event, 'write-contract')">Write Contract</button>
+        </div>
+
+        <div id="token-transfers" class="tab-content" style="display:block;">
+            <h3>Token Transfers</h3>
+            <!-- Add token transfer table here -->
+        </div>
+
+        <div id="contract-source" class="tab-content">
+            <h3>Contract Source Code</h3>
+            <pre><code>${contractInfo.sourceCode}</code></pre>
+        </div>
+
+        <div id="read-contract" class="tab-content">
+            <h3>Read Contract</h3>
+            <!-- Add read contract functionality here -->
+        </div>
+
+        <div id="write-contract" class="tab-content">
+            <h3>Write Contract</h3>
+            <!-- Add write contract functionality here -->
+        </div>
+    ` : ''}
+
+    <h2>Transactions</h2>
+    <table id="transactions-table">
+        <thead>
+            <tr>
+                <th>Txn Hash</th>
+                <th>Method</th>
+                <th>Block</th>
+                <th>Age</th>
+                <th>From</th>
+                <th>To</th>
+                <th>Value</th>
+                <th>Txn Fee</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${transactions.map(tx => `
+                <tr>
+                    <td><a href="/tx/${tx.hash}">${tx.hash.substr(0, 10)}...</a></td>
+                    <td>${tx.input === '0x' ? 'Transfer' : 'Contract Interaction'}</td>
+                    <td><a href="/block/${tx.blockNumber}">${tx.blockNumber}</a></td>
+                    <td>${getTimeDifference(tx.timestamp)}</td>
+                    <td><a href="/address/${tx.from}">${tx.from.substr(0, 10)}...</a></td>
+                    <td><a href="/address/${tx.to}">${tx.to.substr(0, 10)}...</a></td>
+                    <td>${web3.utils.fromWei(tx.value, 'ether')} 3DOT</td>
+                    <td>${calculateTxnFee(tx)} 3DOT</td>
+                </tr>
+            `).join('')}
+        </tbody>
+    </table>
+` }) %>
+
+<script>
+function openTab(evt, tabName) {
+    var i, tabContent, tabButtons;
+    tabContent = document.getElementsByClassName("tab-content");
+    for (i = 0; i < tabContent.length; i++) {
+        tabContent[i].style.display = "none";
+    }
+    tabButtons = document.getElementsByClassName("tab-button");
+    for (i = 0; i < tabButtons.length; i++) {
+        tabButtons[i].className = tabButtons[i].className.replace(" active", "");
+    }
+    document.getElementById(tabName).style.display = "block";
+    evt.currentTarget.className += " active";
+}
+
+function formatLargeNumber(num) {
+    num = parseFloat(num);
+    if (num < 1) return num.toFixed(18).replace(/\.?0+$/, "");
+    let [integerPart, fractionalPart] = num.toString().split('.');
+    integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    if (fractionalPart) {
+        fractionalPart = fractionalPart.slice(0, 18).replace(/\.?0+$/, "");
+        return `${integerPart}.${fractionalPart}`;
+    }
+    return integerPart;
+}
+</script>

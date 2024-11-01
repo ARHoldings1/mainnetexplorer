@@ -1,0 +1,8 @@
+<%- include('layout', { title: 'Search Results', content: `
+    <h1>Search Results</h1>
+    ${error ? `
+        <p class="error">${error}</p>
+    ` : ''}
+    <p>Your search query: ${query}</p>
+    <!-- Add more detailed search results here if needed -->
+` }) %>

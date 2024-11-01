@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <main>
+        <% if (typeof error !== 'undefined') { %>
+            <section class="error">
+                <h2>Error</h2>
+                <p><%= error %></p>
+            </section>
+        <% } else { %>
+            <%- include('layout', { title: 'Home', content: `
+                <section class="stats">
+                    <div class="stat-box">
+                        <h3>3DOT Price</h3>
+                        <p>$1.00 USD</p>
+                    </div>
+                    <div class="stat-box">
+                        <h3>Latest Block</h3>
+                        <p>${latestBlocks[0].number}</p>
+                    </div>
+                    <div class="stat-box">
+                        <h3>Transactions</h3>
+                        <p>${latestBlocks[0].transactions.length} (in latest block)</p>
+                    </div>
+                    <div class="stat-box">
+                        <h3>Gas Price</h3>
+                        <p>0.01 Gwei</p>
+                    </div>
+                    <div class="stat-box">
+                        <h3>Gas Limit</h3>
+                        <p>30000000</p>
+                    </div>
+                </section>
+
+                <section class="latest-blocks">
+                    <h2>Latest Blocks</h2>
+                    <table id="blocks-table">
+                        <thead>
+                            <tr>
+                                <th>Block</th>
+                                <th>Age</th>
+                                <th>Transactions</th>
+                                <th>Validator</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${latestBlocks.map(block => `
+                                <tr>
+                                    <td><a href="/block/${block.number}">${block.number}</a></td>
+                                    <td>${new Date(Number(block.timestamp) * 1000).toLocaleString()}</td>
+                                    <td>${block.transactions.length}</td>
+                                    <td><a href="/address/${block.miner}">${block.miner}</a></td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                    <div class="view-all-button">
+                        <a href="/blocks" class="btn">View All Blocks</a>
+                    </div>
+                </section>
+
+                <section class="latest-transactions">
+                    <h2>Latest Transactions</h2>
+                    <table id="transactions-table">
+                        <thead>
+                            <tr>
+                                <th>Hash</th>
+                                <th>Block</th>
+                                <th>From</th>
+                                <th>To</th>
+                                <th>Value</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${latestTransactions.map(tx => `
+                                <tr>
+                                    <td><a href="/tx/${tx.hash}">${tx.hash.substr(0, 10)}...</a></td>
+                                    <td><a href="/block/${tx.blockNumber}">${tx.blockNumber}</a></td>
+                                    <td><a href="/address/${tx.from}">${tx.from.substr(0, 10)}...</a></td>
+                                    <td><a href="/address/${tx.to}">${tx.to.substr(0, 10)}...</a></td>
+                                    <td>${web3.utils.fromWei(tx.value, 'ether')} 3DOT</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                    <div class="view-all-button">
+                        <a href="/transactions" class="btn">View All Transactions</a>
+                    </div>
+                </section>
+            ` }) %>
+        <% } %>
+    </main>
+
+    <script src="/js/main.js"></script>
+</body>
+</html>

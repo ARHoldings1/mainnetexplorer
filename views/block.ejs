@@ -1,0 +1,33 @@
+<%- include('layout', { title: `Block #${block.number}`, content: `
+    <h1>Block #${block.number}</h1>
+    <table class="info-table">
+        <tr><th>Block Height:</th><td>${block.number}</td></tr>
+        <tr><th>Timestamp:</th><td>${new Date(Number(block.timestamp) * 1000).toLocaleString()}</td></tr>
+        <tr><th>Transactions:</th><td>${block.transactions.length}</td></tr>
+        <tr><th>Validator:</th><td><a href="/address/${block.miner}">${block.miner}</a></td></tr>
+        <tr><th>Gas Used:</th><td>${block.gasUsed}</td></tr>
+        <tr><th>Gas Limit:</th><td>${block.gasLimit}</td></tr>
+    </table>
+
+    <h2>Transactions</h2>
+    <table id="transactions-table">
+        <thead>
+            <tr>
+                <th>Hash</th>
+                <th>From</th>
+                <th>To</th>
+                <th>Value</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${transactions.map(tx => `
+                <tr>
+                    <td><a href="/tx/${tx.hash}">${tx.hash.substr(0, 10)}...</a></td>
+                    <td><a href="/address/${tx.from}">${tx.from.substr(0, 10)}...</a></td>
+                    <td><a href="/address/${tx.to}">${tx.to.substr(0, 10)}...</a></td>
+                    <td>${web3.utils.fromWei(tx.value, 'ether')} 3DOT</td>
+                </tr>
+            `).join('')}
+        </tbody>
+    </table>
+` }) %>
