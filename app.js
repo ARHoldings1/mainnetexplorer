@@ -9,7 +9,6 @@ dotenv.config();
 
 const app = express();
 
-// Replace the initial mongoose.connect with this utility function
 let cachedConnection = null;
 
 const connectToDatabase = async () => {
@@ -19,10 +18,10 @@ const connectToDatabase = async () => {
 
   try {
     const connection = await mongoose.connect(process.env.MONGODB_URI, {
-      serverSelectionTimeoutMS: 3000, // Reduced timeout for serverless
+      serverSelectionTimeoutMS: 3000,
       socketTimeoutMS: 10000,
       connectTimeoutMS: 5000,
-      maxPoolSize: 1, // Reduced pool size for serverless
+      maxPoolSize: 1,
       minPoolSize: 0,
       maxIdleTimeMS: 5000,
       waitQueueTimeoutMS: 3000,
@@ -36,7 +35,6 @@ const connectToDatabase = async () => {
   }
 };
 
-// Replace the middleware with this
 app.use(async (req, res, next) => {
   try {
     await connectToDatabase();
@@ -45,17 +43,6 @@ app.use(async (req, res, next) => {
     console.error('Request connection error:', error);
     next(error);
   }
-});
-
-// Add this near the top of your middleware stack
-app.use((req, res, next) => {
-  // Set timeout to 10 seconds
-  req.setTimeout(10000, () => {
-    const err = new Error('Request Timeout');
-    err.status = 408;
-    next(err);
-  });
-  next();
 });
 
 // Set up EJS as the view engine
@@ -76,20 +63,30 @@ app.use(session({
   saveUninitialized: false,
   store: MongoStore.create({ 
     mongoUrl: process.env.MONGODB_URI,
-    touchAfter: 24 * 3600, // Only update sessions once per day
-    ttl: 14 * 24 * 60 * 60, // 14 days
+    touchAfter: 24 * 3600,
+    ttl: 14 * 24 * 60 * 60,
     autoRemove: 'native',
     stringify: false
   }),
   cookie: { 
     secure: process.env.NODE_ENV === 'production',
-    maxAge: 14 * 24 * 60 * 60 * 1000 // 14 days
+    maxAge: 14 * 24 * 60 * 60 * 1000
   }
 }));
 
 // Middleware to make user data available in all views
 app.use((req, res, next) => {
   res.locals.user = req.session.user || null;
+  next();
+});
+
+// Add request timeout handling
+app.use((req, res, next) => {
+  req.setTimeout(10000, () => {
+    const err = new Error('Request Timeout');
+    err.status = 408;
+    next(err);
+  });
   next();
 });
 
@@ -106,7 +103,7 @@ app.use('/transactions', transactionRoutes);
 app.use('/tokens', tokenRoutes);
 app.use('/auth', authRoutes);
 
-// Enhanced error handling middleware with more specific cases
+// Enhanced error handling middleware
 app.use((err, req, res, next) => {
   console.error('Error:', err);
   
@@ -140,7 +137,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Health check endpoint with detailed status
+// Health check endpoint
 app.get('/health', async (req, res) => {
   try {
     await mongoose.connection.db.admin().ping();
@@ -162,3 +159,5 @@ const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+module.exports = app;
