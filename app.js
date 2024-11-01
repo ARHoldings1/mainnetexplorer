@@ -18,13 +18,16 @@ const connectToDatabase = async () => {
 
   try {
     const connection = await mongoose.connect(process.env.MONGODB_URI, {
-      serverSelectionTimeoutMS: 3000,
-      socketTimeoutMS: 10000,
-      connectTimeoutMS: 5000,
+      serverSelectionTimeoutMS: 30000,
+      socketTimeoutMS: 45000,
+      connectTimeoutMS: 30000,
       maxPoolSize: 1,
       minPoolSize: 0,
-      maxIdleTimeMS: 5000,
-      waitQueueTimeoutMS: 3000,
+      maxIdleTimeMS: 120000,
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      retryWrites: true,
+      w: 'majority'
     });
     
     cachedConnection = connection;
@@ -66,7 +69,11 @@ app.use(session({
     touchAfter: 24 * 3600,
     ttl: 14 * 24 * 60 * 60,
     autoRemove: 'native',
-    stringify: false
+    stringify: false,
+    mongoOptions: {
+      useNewUrlParser: true,
+      useUnifiedTopology: true
+    }
   }),
   cookie: { 
     secure: process.env.NODE_ENV === 'production',
