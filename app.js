@@ -4,6 +4,7 @@ const session = require('express-session');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const MongoStore = require('connect-mongo');
+const { MongoClient } = require('mongodb');
 
 dotenv.config();
 
@@ -18,22 +19,27 @@ const connectToDatabase = async () => {
 
   try {
     const connection = await mongoose.connect(process.env.MONGODB_URI, {
-      serverSelectionTimeoutMS: 30000,
-      socketTimeoutMS: 45000,
-      connectTimeoutMS: 30000,
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 10000,
+      connectTimeoutMS: 5000,
       maxPoolSize: 1,
       minPoolSize: 0,
-      maxIdleTimeMS: 120000,
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
+      maxIdleTimeMS: 5000,
       retryWrites: true,
-      w: 'majority'
+      w: 'majority',
+      family: 4
     });
     
+    connection.connection.on('error', err => {
+      console.error('MongoDB connection error:', err);
+      cachedConnection = null;
+    });
+
     cachedConnection = connection;
     return connection;
   } catch (error) {
     console.error('MongoDB connection error:', error);
+    cachedConnection = null;
     throw error;
   }
 };
@@ -70,10 +76,15 @@ app.use(session({
     ttl: 14 * 24 * 60 * 60,
     autoRemove: 'native',
     stringify: false,
-    mongoOptions: {
-      useNewUrlParser: true,
-      useUnifiedTopology: true
-    }
+    clientPromise: (async () => {
+      const client = new MongoClient(process.env.MONGODB_URI, {
+        serverSelectionTimeoutMS: 5000,
+        socketTimeoutMS: 10000,
+        connectTimeoutMS: 5000,
+        maxPoolSize: 1
+      });
+      return client.connect();
+    })()
   }),
   cookie: { 
     secure: process.env.NODE_ENV === 'production',
